@@ -1,0 +1,131 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: ridesharing
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS gateway
+  
+  - changeSet:
+      id: 2
+      author: ridesharing
+      changes:
+        - createTable:
+            schemaName: gateway
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: phone
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+  
+  - changeSet:
+      id: 3
+      author: ridesharing
+      changes:
+        - createIndex:
+            schemaName: gateway
+            tableName: users
+            indexName: idx_users_username
+            columns:
+              - column:
+                  name: username
+        - createIndex:
+            schemaName: gateway
+            tableName: users
+            indexName: idx_users_email
+            columns:
+              - column:
+                  name: email
+
+  - changeSet:
+      id: 4
+      author: ridesharing
+      context: dev
+      changes:
+        - insert:
+            schemaName: gateway
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: customer1
+              - column:
+                  name: password
+                  value: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n9tPykPx/3SFO0EEW0.HK
+              - column:
+                  name: email
+                  value: customer1@example.com
+              - column:
+                  name: phone
+                  value: +1234567890
+              - column:
+                  name: role
+                  value: CUSTOMER
+              - column:
+                  name: enabled
+                  valueBoolean: true
+        - insert:
+            schemaName: gateway
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: driver1
+              - column:
+                  name: password
+                  value: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n9tPykPx/3SFO0EEW0.HK
+              - column:
+                  name: email
+                  value: driver1@example.com
+              - column:
+                  name: phone
+                  value: +0987654321
+              - column:
+                  name: role
+                  value: DRIVER
+              - column:
+                  name: enabled
+                  valueBoolean: true
