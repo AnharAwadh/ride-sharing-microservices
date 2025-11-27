@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
  * REST Controller for authentication.
@@ -23,14 +25,21 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     
     private final AuthService authService;
-    
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public Mono<ResponseEntity<ApiResponse<LoginResponse>>> login(
+            @Valid @RequestBody LoginRequest request,
+            ServerWebExchange exchange) {
+
         log.info("Received login request for user: {}", request.getUsername());
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+        return authService.login(request, exchange)
+                .map(response -> ResponseEntity.ok(ApiResponse.success("Login successful", response)))
+                .onErrorResume(e -> Mono.just(ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error(e.getMessage()))));
     }
-    
+
+
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Received registration request for user: {}", request.getUsername());

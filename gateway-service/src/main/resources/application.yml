@@ -4,49 +4,67 @@ server:
 spring:
   application:
     name: gateway-service
-  
+
+  # R2DBC Configuration (Reactive Database)
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ridesharing}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  # JDBC for Liquibase (migrations need JDBC)
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ridesharing}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
-  
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        default_schema: gateway
-  
+
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
     default-schema: gateway
-  
+
+  # Redis Configuration for Session Storage
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+
+  # Spring Session Configuration
+  session:
+    store-type: redis
+    redis:
+      namespace: ridesharing:session
+    timeout: 3600s
+
+  # Spring Cloud Gateway Routes
   cloud:
     gateway:
       routes:
+        # Customer Service Routes
         - id: customer-service
           uri: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/customer/**
-        
+
+        # Driver Service Routes
         - id: driver-service
           uri: ${DRIVER_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/driver/**
 
-jwt:
-  secret: ${JWT_SECRET:ff33cbf26caf1667573f2e4e49018375}
-  expiration: ${JWT_EXPIRATION:86400000}
+      # Default filters for all routes
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
 logging:
   level:
     root: INFO
     com.ridesharing: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.session: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -54,7 +72,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,gateway
   endpoint:
     health:
       show-details: always
+    gateway:
+      enabled: true

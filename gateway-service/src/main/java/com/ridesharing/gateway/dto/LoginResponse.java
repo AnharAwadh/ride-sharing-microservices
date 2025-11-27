@@ -11,15 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-    private String token;
-    private String tokenType;
+    private String sessionId;
     private Long expiresIn;
     private UserResponse user;
-    
-    public static LoginResponse of(String token, Long expiresIn, UserResponse user) {
+
+    public static LoginResponse of(String sessionId, Long expiresIn, UserResponse user) {
         return LoginResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
+                .sessionId(sessionId)
                 .expiresIn(expiresIn)
                 .user(user)
                 .build();
