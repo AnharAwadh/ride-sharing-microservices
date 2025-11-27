@@ -26,6 +26,24 @@ public class DriverController {
     private final DriverService driverService;
 
 
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('DRIVER')")
+    public ResponseEntity<ApiResponse<DriverProfileResponse>> getProfile(
+            @CurrentUser UserPrincipal currentUser) {
+
+        log.info("Fetching profile for authenticated driver: {} (ID: {})",
+                currentUser.getUsername(), currentUser.getId());
+
+        DriverProfileResponse profile = driverService.getOrCreateProfile(
+                currentUser.getId(),
+                currentUser.getUsername(),
+                null,
+                null
+        );
+        return ResponseEntity.ok(ApiResponse.success(profile));
+    }
+
+
     @PutMapping("/status")
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<ApiResponse<String>> updateStatus(

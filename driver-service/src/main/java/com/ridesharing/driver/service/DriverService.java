@@ -54,7 +54,28 @@ public class DriverService {
         log.warn("No pending rides found or service error");
         return Collections.emptyList();
     }
-    
+    @Transactional
+    public DriverProfileResponse getOrCreateProfile(Long userId, String username, String email, String phone) {
+        log.info("Getting or creating profile for driver: {} (ID: {})", username, userId);
+
+        DriverProfile profile = driverProfileRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    log.info("Creating new driver profile for user: {}", username);
+                    DriverProfile newProfile = DriverProfile.builder()
+                            .userId(userId)
+                            .username(username)
+                            .email(email != null ? email : "")
+                            .phone(phone != null ? phone : "")
+                            .status(DriverStatus.OFFLINE)
+                            .totalRides(0)
+                            .build();
+                    return driverProfileRepository.save(newProfile);
+                });
+
+        return mapToResponse(profile);
+    }
+
+
     @Transactional
     public RideResponse assignRide(Long userId, String username, Long rideId) {
         log.info("Driver {} assigning ride ID: {} via Feign Client", username, rideId);
@@ -91,6 +112,19 @@ public class DriverService {
         return Collections.emptyList();
     }
 
-    
+    private DriverProfileResponse mapToResponse(DriverProfile profile) {
+        return DriverProfileResponse.builder()
+                .id(profile.getId())
+                .userId(profile.getUserId())
+                .username(profile.getUsername())
+                .email(profile.getEmail())
+                .phone(profile.getPhone())
+                .status(profile.getStatus())
+                .vehicleModel(profile.getVehicleModel())
+                .vehiclePlate(profile.getVehiclePlate())
+                .totalRides(profile.getTotalRides())
+                .createdAt(profile.getCreatedAt())
+                .build();
+    }
 
 }
