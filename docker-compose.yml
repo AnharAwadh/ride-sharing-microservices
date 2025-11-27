@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ridesharing-postgres
+    environment:
+      POSTGRES_DB: ridesharing
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ridesharing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ridesharing-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ridesharing-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ridesharing-network
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: ridesharing-gateway
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ridesharing
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+      DRIVER_SERVICE_URL: http://driver-service:8082
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ridesharing-network
+
+  customer-service:
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile
+    container_name: ridesharing-customer
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ridesharing
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ridesharing-network
+
+  driver-service:
+    build:
+      context: ./driver-service
+      dockerfile: Dockerfile
+    container_name: ridesharing-driver
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ridesharing
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+    networks:
+      - ridesharing-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ridesharing-network:
+    driver: bridge
