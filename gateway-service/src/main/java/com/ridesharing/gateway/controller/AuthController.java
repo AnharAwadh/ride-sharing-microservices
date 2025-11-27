@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,10 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Log4j2
 public class AuthController {
     
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-    
+
     private final AuthService authService;
 
     @PostMapping("/login")
