@@ -27,8 +27,16 @@ public class DriverProxyController {
     
     @Value("${driver-service.url:http://localhost:8082}")
     private String driverServiceUrl;
-    
 
+
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('DRIVER')")
+    public ResponseEntity<String> getProfile(
+            @CurrentUser CustomUserDetails currentUser) {
+
+        log.info("Proxying profile for driver: {}", currentUser.getUsername());
+        return forwardRequest("/api/driver/profile", HttpMethod.GET,null, currentUser);
+    }
     
     @PutMapping("/status")
     @PreAuthorize("hasRole('DRIVER')")
