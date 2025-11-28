@@ -94,7 +94,7 @@ databaseChangeLog:
                   value: customer1
               - column:
                   name: password
-                  value: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n9tPykPx/3SFO0EEW0.HK
+                  value: $2a$10$Lw5kDFbI0.eAe2YYNRSpaOVIfbHkfH/8NiStsgdQ5zGTlp35axScO
               - column:
                   name: email
                   value: customer1@example.com
@@ -116,7 +116,7 @@ databaseChangeLog:
                   value: driver1
               - column:
                   name: password
-                  value: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n9tPykPx/3SFO0EEW0.HK
+                  value: $2a$10$Lw5kDFbI0.eAe2YYNRSpaOVIfbHkfH/8NiStsgdQ5zGTlp35axScO
               - column:
                   name: email
                   value: driver1@example.com
